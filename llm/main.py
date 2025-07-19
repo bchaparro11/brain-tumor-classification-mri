@@ -3,6 +3,7 @@
 import base64
 import os
 import csv
+from pathlib import Path
 from openai import OpenAI
 
 
@@ -41,26 +42,20 @@ def classify_image(image_path):
 
 
 username = os.environ.get("USERNAME")
+image_folder = Path(fr"C:\Users\{username}\Documents\nl\ISI_dataset\test_2")
 
-image_folder = fr"C:\Users\{username}\Documents\nl\ISI_dataset\test_2"
+output_csv = "llm_chatgpt_gpt4dot1_results.csv"
 
-output_csv = "gpt4_results.csv"
+with open(output_csv, "w", newline="") as f:
+    writer = csv.DictWriter(f, fieldnames=["id", "label"])
+    writer.writeheader()
 
-image_files = [f for f in os.listdir(image_folder) if f.lower().endswith(".jpg")]
-
-results = []
-for image_file in image_files:
-    print(f"Classifying: {image_file}")
-    image_path = os.path.join(image_folder, image_file)
-    # label = classify_image(image_path)
-    label = "glioma"
-    results.append({ "id": image_file, "label": label })
-
-print(results)
-
-# with open(output_csv, "w", newline="") as f:
-#     writer = csv.DictWriter(f, fieldnames=["id", "label"])
-#     writer.writeheader()
-#     writer.writerows(results)
+    for entry in image_folder.iterdir():
+        if entry.is_file() and entry.suffix.lower() == ".jpg":
+            print(f"Classifying: {entry.name}")
+            # label = classify_image(str(entry))
+            label = "<test_label>"
+            writer.writerow({ "id": entry.name, "label": label })
+            f.flush()
 
 print(f"Classification complete. Output saved to {output_csv}")
