@@ -5,9 +5,10 @@ import os
 import csv
 from pathlib import Path
 from openai import OpenAI
+from dotenv import load_dotenv
 
-
-client = OpenAI(api_key="your-api-key")
+load_dotenv()
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 def encode_image(image_path):
     with open(image_path, "rb") as image_file:
@@ -40,22 +41,24 @@ def classify_image(image_path):
     )
     return response.output_text.strip().lower()
 
+if __name__ == "__main__":
 
-username = os.environ.get("USERNAME")
-image_folder = Path(fr"C:\Users\{username}\Documents\nl\ISI_dataset\test_2")
+    username = os.environ.get("USERNAME")
+    image_folder = Path(fr"C:\Users\{username}\Documents\nl\ISI_dataset\test_2")
 
-output_csv = "llm_chatgpt_gpt4dot1_results.csv"
+    output_csv = "llm_chatgpt_gpt4dot1_results.csv"
 
-with open(output_csv, "w", newline="") as f:
-    writer = csv.DictWriter(f, fieldnames=["id", "label"])
-    writer.writeheader()
+    with open(output_csv, "w", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=["id", "label"])
+        writer.writeheader()
 
-    for entry in image_folder.iterdir():
-        if entry.is_file() and entry.suffix.lower() == ".jpg":
-            print(f"Classifying: {entry.name}")
-            # label = classify_image(str(entry))
-            label = "<test_label>"
-            writer.writerow({ "id": entry.name, "label": label })
-            f.flush()
+        for entry in image_folder.iterdir():
+            if entry.is_file() and entry.suffix.lower() == ".jpg":
+                print(f"Classifying: {entry.name}")
+                label = classify_image(str(entry))
+                json_value = {"id": entry.name, "label": label}
+                print(json_value)
+                writer.writerow(json_value)
+                f.flush()
 
-print(f"Classification complete. Output saved to {output_csv}")
+    print(f"Classification complete. Output saved to {output_csv}")
